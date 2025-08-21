@@ -139,7 +139,6 @@ ipcMain.handle("stream-logs", async (event, podName: string) => {
     const kubectlArgs = [
       "logs",
       "-f", // follow
-      "--tail=100", // show last 100 lines
       podName,
     ];
 
