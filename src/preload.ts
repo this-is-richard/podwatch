@@ -7,4 +7,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getContexts: () => ipcRenderer.invoke("get-contexts"),
   switchContext: (contextName: string) =>
     ipcRenderer.invoke("switch-context", contextName),
+  getPods: (contextName?: string) =>
+    ipcRenderer.invoke("get-pods", contextName),
 });

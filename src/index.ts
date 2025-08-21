@@ -49,6 +49,52 @@ ipcMain.handle("switch-context", async (event, contextName) => {
   return { success: true, currentContext: kc.currentContext };
 });
 
+// Handle IPC for getting pods
+ipcMain.handle("get-pods", async (event, contextName) => {
+  try {
+    const kc = new k8s.KubeConfig();
+    kc.loadFromDefault();
+
+    // Switch to the specified context if provided
+    if (contextName) {
+      kc.setCurrentContext(contextName);
+    }
+
+    const k8sApi = kc.makeApiClient(k8s.CoreV1Api);
+    const podListResponse = await k8sApi.listPodForAllNamespaces();
+
+    const pods =
+      podListResponse?.items?.map((pod) => ({
+        name: pod.metadata?.name || "",
+        namespace: pod.metadata?.namespace || "",
+        status: pod.status?.phase || "Unknown",
+        ready:
+          pod.status?.containerStatuses?.every(
+            (cs: k8s.V1ContainerStatus) => cs.ready
+          ) || false,
+        restarts:
+          pod.status?.containerStatuses?.reduce(
+            (sum: number, cs: k8s.V1ContainerStatus) =>
+              sum + (cs.restartCount || 0),
+            0
+          ) || 0,
+        age: pod.metadata?.creationTimestamp
+          ? Math.floor(
+              (Date.now() -
+                new Date(pod.metadata.creationTimestamp).getTime()) /
+                (1000 * 60 * 60 * 24)
+            )
+          : 0,
+        node: pod.spec?.nodeName || "Unknown",
+      })) || [];
+
+    return { success: true, pods };
+  } catch (error) {
+    console.error("Error getting pods:", error);
+    return { success: false, error: error.message, pods: [] };
+  }
+});
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
