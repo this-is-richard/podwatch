@@ -23,9 +23,11 @@ interface ElectronAPI {
   }>;
   streamLogs: (
     podName: string,
-    namespace: string,
     callback: (log: string) => void
-  ) => Promise<{ success: boolean; error?: string }>;
+  ) => Promise<{
+    success: boolean;
+    error?: string;
+  }>;
   stopLogStream: () => Promise<{ success: boolean }>;
 }
 
