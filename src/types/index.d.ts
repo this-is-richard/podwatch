@@ -21,6 +21,12 @@ interface ElectronAPI {
     pods: Pod[];
     error?: string;
   }>;
+  streamLogs: (
+    podName: string,
+    namespace: string,
+    callback: (log: string) => void
+  ) => Promise<{ success: boolean; error?: string }>;
+  stopLogStream: () => Promise<{ success: boolean }>;
 }
 
 declare global {

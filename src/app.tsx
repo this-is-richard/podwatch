@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // Import the Pod type
 type Pod = {
@@ -21,6 +21,14 @@ const App = () => {
   const [podsLoading, setPodsLoading] = useState(false);
   const [podsError, setPodsError] = useState<string>("");
   const [selectedNamespace, setSelectedNamespace] = useState<string>("default");
+
+  // Log streaming state
+  const [selectedPod, setSelectedPod] = useState<Pod | null>(null);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [logError, setLogError] = useState<string>("");
+  const [followLogs, setFollowLogs] = useState(true);
+  const logContainerRef = useRef<HTMLDivElement>(null);
 
   // Helper function to get unique namespaces from pods
   const getUniqueNamespaces = (pods: Pod[]): string[] => {
@@ -74,8 +82,33 @@ const App = () => {
     }
   }, [pods, selectedNamespace]);
 
+  // Auto-scroll logs when new logs arrive
+  useEffect(() => {
+    if (followLogs && logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
+  }, [logs, followLogs]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (isStreaming) {
+        stopLogStreaming();
+      }
+    };
+  }, []);
+
   // Handle context switch
   const handleSwitchContext = (contextName: string) => {
+    // Stop any active log streaming
+    if (isStreaming) {
+      stopLogStreaming();
+    }
+    // Reset pod selection
+    setSelectedPod(null);
+    setLogs([]);
+    setLogError("");
+
     window.electronAPI.switchContext(contextName).then(({ currentContext }) => {
       setCurrentContext(currentContext);
       setSelectedNamespace("default"); // Reset namespace filter when switching contexts
@@ -101,6 +134,62 @@ const App = () => {
     } finally {
       setPodsLoading(false);
     }
+  };
+
+  // Handle pod selection
+  const handlePodSelect = (pod: Pod) => {
+    setSelectedPod(pod);
+    setLogs([]);
+    setLogError("");
+    startLogStreaming(pod);
+  };
+
+  // Start log streaming
+  const startLogStreaming = async (pod: Pod) => {
+    if (isStreaming) {
+      await stopLogStreaming();
+    }
+
+    setIsStreaming(true);
+    setLogError("");
+    setLogs([]);
+
+    try {
+      const result = await window.electronAPI.streamLogs(
+        pod.name,
+        pod.namespace,
+        (logLine: string) => {
+          setLogs((prev) => {
+            const newLogs = [...prev, logLine];
+            // Keep only last 1000 log lines to prevent memory issues
+            return newLogs.slice(-1000);
+          });
+        }
+      );
+
+      if (!result.success) {
+        setLogError(result.error || "Failed to start log streaming");
+        setIsStreaming(false);
+      }
+    } catch (error) {
+      setLogError("Failed to start log streaming");
+      setIsStreaming(false);
+    }
+  };
+
+  // Stop log streaming
+  const stopLogStreaming = async () => {
+    try {
+      await window.electronAPI.stopLogStream();
+      setIsStreaming(false);
+    } catch (error) {
+      console.error("Error stopping log stream:", error);
+    }
+  };
+
+  // Clear logs
+  const clearLogs = () => {
+    setLogs([]);
   };
 
   if (loading)
@@ -228,9 +317,16 @@ const App = () => {
                         (pod, index) => (
                           <tr
                             key={`${pod.namespace}-${pod.name}`}
-                            className={
-                              index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                            }
+                            className={`cursor-pointer transition-colors hover:bg-blue-50 ${
+                              selectedPod &&
+                              selectedPod.name === pod.name &&
+                              selectedPod.namespace === pod.namespace
+                                ? "bg-blue-100 border-l-4 border-blue-500"
+                                : index % 2 === 0
+                                  ? "bg-white"
+                                  : "bg-gray-50"
+                            }`}
+                            onClick={() => handlePodSelect(pod)}
                           >
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                               {pod.name}
@@ -290,6 +386,117 @@ const App = () => {
                 No pods found in this context
               </div>
             )}
+          </div>
+        )}
+
+        {/* Log Viewer Section */}
+        {selectedPod && (
+          <div className="mt-8">
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              {/* Log Header */}
+              <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Logs for {selectedPod.name}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Namespace: {selectedPod.namespace} • Status:{" "}
+                      {selectedPod.status}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="follow-logs"
+                        checked={followLogs}
+                        onChange={(e) => setFollowLogs(e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <label
+                        htmlFor="follow-logs"
+                        className="text-sm text-gray-700"
+                      >
+                        Follow
+                      </label>
+                    </div>
+                    <button
+                      onClick={clearLogs}
+                      className="px-3 py-1.5 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
+                    >
+                      Clear
+                    </button>
+                    <button
+                      onClick={
+                        isStreaming
+                          ? stopLogStreaming
+                          : () => startLogStreaming(selectedPod)
+                      }
+                      className={`px-3 py-1.5 text-sm rounded ${
+                        isStreaming
+                          ? "bg-red-600 text-white hover:bg-red-700"
+                          : "bg-green-600 text-white hover:bg-green-700"
+                      }`}
+                    >
+                      {isStreaming ? "Stop" : "Start"}
+                    </button>
+                    <button
+                      onClick={() => setSelectedPod(null)}
+                      className="px-3 py-1.5 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Log Error */}
+              {logError && (
+                <div className="px-6 py-3 bg-red-50 border-b border-red-200">
+                  <p className="text-red-600 text-sm">{logError}</p>
+                </div>
+              )}
+
+              {/* Log Content */}
+              <div
+                ref={logContainerRef}
+                className="h-96 overflow-y-auto bg-black text-green-400 font-mono text-sm p-4"
+                style={{
+                  fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+                }}
+              >
+                {logs.length === 0 ? (
+                  <div className="text-gray-500 text-center py-8">
+                    {isStreaming
+                      ? "Waiting for logs..."
+                      : "No logs available. Click Start to begin streaming."}
+                  </div>
+                ) : (
+                  logs.map((log, index) => (
+                    <div
+                      key={index}
+                      className="whitespace-pre-wrap break-words"
+                    >
+                      {log}
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Log Footer */}
+              <div className="px-6 py-2 bg-gray-50 border-t border-gray-200 text-sm text-gray-600">
+                <div className="flex items-center justify-between">
+                  <span>
+                    {logs.length} lines •{" "}
+                    {isStreaming ? "Streaming" : "Stopped"}
+                  </span>
+                  <span>
+                    {selectedPod.name} in {selectedPod.namespace}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>
