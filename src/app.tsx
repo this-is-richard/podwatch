@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 
 const App = () => {
-  const [contexts, setContexts] = useState([]);
-  const [currentContext, setCurrentContext] = useState("");
+  const [contexts, setContexts] = useState<
+    { name: string; cluster: string; user: string }[]
+  >([]);
+  const [currentContext, setCurrentContext] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   // Fetch contexts on mount
@@ -15,7 +17,7 @@ const App = () => {
   }, []);
 
   // Handle context switch
-  const handleSwitchContext = (contextName) => {
+  const handleSwitchContext = (contextName: string) => {
     window.electronAPI.switchContext(contextName).then(({ currentContext }) => {
       setCurrentContext(currentContext);
     });
