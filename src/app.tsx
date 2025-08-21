@@ -157,6 +157,7 @@ const App = () => {
     try {
       const result = await window.electronAPI.streamLogs(
         pod.name,
+        pod.namespace,
         (logLine: string) => {
           setLogs((prev) => {
             const newLogs = [...prev, logLine];

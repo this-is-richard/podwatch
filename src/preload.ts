@@ -9,10 +9,14 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke("switch-context", contextName),
   getPods: (contextName?: string) =>
     ipcRenderer.invoke("get-pods", contextName),
-  streamLogs: (podName: string, callback: (log: string) => void) => {
+  streamLogs: (
+    podName: string,
+    namespace: string,
+    callback: (log: string) => void
+  ) => {
     // Set up listener for log events
     ipcRenderer.on("log-data", (_, log: string) => callback(log));
-    return ipcRenderer.invoke("stream-logs", podName);
+    return ipcRenderer.invoke("stream-logs", podName, namespace);
   },
   stopLogStream: () => {
     ipcRenderer.removeAllListeners("log-data");

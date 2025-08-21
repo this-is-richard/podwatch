@@ -123,74 +123,81 @@ app.on("activate", () => {
 });
 
 // Handle IPC for streaming logs
-ipcMain.handle("stream-logs", async (event, podName: string) => {
-  try {
-    // Stop any existing process
-    if (currentLogProcess) {
-      currentLogProcess.kill();
-      currentLogProcess = null;
+ipcMain.handle(
+  "stream-logs",
+  async (event, podName: string, namespace: string) => {
+    try {
+      // Stop any existing process
+      if (currentLogProcess) {
+        currentLogProcess.kill();
+        currentLogProcess = null;
+      }
+
+      // Get the current context and kubeconfig
+      const kc = new k8s.KubeConfig();
+      kc.loadFromDefault();
+
+      // Use kubectl to stream logs
+      const kubectlArgs = [
+        "logs",
+        "-f", // follow
+        "--tail=100", // show last 100 lines
+        // "-n",
+        // namespace,
+        podName,
+      ];
+
+      currentLogProcess = spawn("kubectl", kubectlArgs, {
+        env: {
+          ...process.env,
+          KUBECONFIG: kc.getCurrentContext()
+            ? undefined
+            : process.env.KUBECONFIG,
+        },
+      });
+
+      // Handle stdout (log data)
+      currentLogProcess.stdout?.on("data", (chunk: Buffer) => {
+        const logLine = chunk.toString();
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send("log-data", logLine);
+        }
+      });
+
+      // Handle stderr (errors)
+      currentLogProcess.stderr?.on("data", (chunk: Buffer) => {
+        const errorLine = chunk.toString();
+        console.error("kubectl stderr:", errorLine);
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send("log-data", `Error: ${errorLine}`);
+        }
+      });
+
+      // Handle process end
+      currentLogProcess.on("close", (code: number | null) => {
+        console.log(`kubectl process exited with code ${code}`);
+        currentLogProcess = null;
+      });
+
+      // Handle process error
+      currentLogProcess.on("error", (error: Error) => {
+        console.error("kubectl process error:", error);
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send(
+            "log-data",
+            `Process Error: ${error.message}\n`
+          );
+        }
+        currentLogProcess = null;
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error streaming logs:", error);
+      return { success: false, error: (error as Error).message };
     }
-
-    // Get the current context and kubeconfig
-    const kc = new k8s.KubeConfig();
-    kc.loadFromDefault();
-
-    // Use kubectl to stream logs
-    const kubectlArgs = [
-      "logs",
-      "-f", // follow
-      "--tail=100", // show last 100 lines
-      podName,
-    ];
-
-    currentLogProcess = spawn("kubectl", kubectlArgs, {
-      env: {
-        ...process.env,
-        KUBECONFIG: kc.getCurrentContext() ? undefined : process.env.KUBECONFIG,
-      },
-    });
-
-    // Handle stdout (log data)
-    currentLogProcess.stdout?.on("data", (chunk: Buffer) => {
-      const logLine = chunk.toString();
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send("log-data", logLine);
-      }
-    });
-
-    // Handle stderr (errors)
-    currentLogProcess.stderr?.on("data", (chunk: Buffer) => {
-      const errorLine = chunk.toString();
-      console.error("kubectl stderr:", errorLine);
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send("log-data", `Error: ${errorLine}`);
-      }
-    });
-
-    // Handle process end
-    currentLogProcess.on("close", (code: number | null) => {
-      console.log(`kubectl process exited with code ${code}`);
-      currentLogProcess = null;
-    });
-
-    // Handle process error
-    currentLogProcess.on("error", (error: Error) => {
-      console.error("kubectl process error:", error);
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send(
-          "log-data",
-          `Process Error: ${error.message}\n`
-        );
-      }
-      currentLogProcess = null;
-    });
-
-    return { success: true };
-  } catch (error) {
-    console.error("Error streaming logs:", error);
-    return { success: false, error: (error as Error).message };
   }
-});
+);
 
 // Handle IPC for stopping log stream
 ipcMain.handle("stop-log-stream", async () => {
