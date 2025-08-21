@@ -1,3 +1,4 @@
+import { Check, Copy } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 // Import the Pod type
@@ -29,6 +30,7 @@ const App = () => {
   const [logError, setLogError] = useState<string>("");
   const [followLogs, setFollowLogs] = useState(true);
   const logContainerRef = useRef<HTMLDivElement>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   // Helper function to get unique namespaces from pods
   const getUniqueNamespaces = (pods: Pod[]): string[] => {
@@ -189,6 +191,24 @@ const App = () => {
   // Clear logs
   const clearLogs = () => {
     setLogs([]);
+  };
+
+  // Copy all logs to clipboard
+  const copyAllLogs = async () => {
+    if (logs.length === 0) return;
+
+    try {
+      const allLogsText = logs.join("\n");
+      await navigator.clipboard.writeText(allLogsText);
+      setCopySuccess(true);
+
+      // Reset success state after 2 seconds
+      setTimeout(() => {
+        setCopySuccess(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to copy logs:", error);
+    }
   };
 
   if (loading)
@@ -400,6 +420,24 @@ const App = () => {
                       Follow
                     </label>
                   </div>
+                  <button
+                    onClick={copyAllLogs}
+                    disabled={logs.length === 0}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    title="Copy all logs to clipboard"
+                  >
+                    {copySuccess ? (
+                      <>
+                        <Check size={16} />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={16} />
+                        Copy
+                      </>
+                    )}
+                  </button>
                   <button
                     onClick={clearLogs}
                     className="px-3 py-1.5 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
