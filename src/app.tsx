@@ -201,31 +201,57 @@ const App = () => {
   return (
     <div className="p-5 font-sans min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          Kubernetes Contexts
-        </h2>
-        <p className="text-lg text-gray-600 mb-6">
-          Current Context:{" "}
-          <strong className="text-blue-600">{currentContext || "None"}</strong>
-        </p>
+        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            Kubernetes Context
+          </h2>
 
-        <div className="space-y-2">
-          {contexts.map((ctx) => (
-            <div
-              key={ctx.name}
-              className={`p-4 rounded-lg border transition-all duration-200 cursor-pointer hover:shadow-md ${
-                ctx.name === currentContext
-                  ? "bg-blue-50 border-blue-200 shadow-sm"
-                  : "bg-white border-gray-200 hover:border-gray-300"
-              }`}
-              onClick={() => handleSwitchContext(ctx.name)}
+          <div className="flex items-center gap-4 mb-4">
+            <label
+              htmlFor="context-select"
+              className="text-sm font-medium text-gray-700 whitespace-nowrap"
             >
-              <div className="font-medium text-gray-800">{ctx.name}</div>
-              <div className="text-sm text-gray-500 mt-1">
-                Cluster: {ctx.cluster} • User: {ctx.user}
+              Select Context:
+            </label>
+            <select
+              id="context-select"
+              value={currentContext}
+              onChange={(e) => handleSwitchContext(e.target.value)}
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+            >
+              {contexts.map((ctx) => (
+                <option key={ctx.name} value={ctx.name}>
+                  {ctx.name} ({ctx.cluster})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {currentContext && (
+            <div className="text-sm text-gray-600 bg-gray-50 rounded-md p-3">
+              <div className="font-medium text-gray-800 mb-1">
+                Current Context Details:
               </div>
+              <div>
+                <strong>Name:</strong> {currentContext}
+              </div>
+              {contexts.find((ctx) => ctx.name === currentContext) && (
+                <>
+                  <div>
+                    <strong>Cluster:</strong>{" "}
+                    {
+                      contexts.find((ctx) => ctx.name === currentContext)
+                        ?.cluster
+                    }
+                  </div>
+                  <div>
+                    <strong>User:</strong>{" "}
+                    {contexts.find((ctx) => ctx.name === currentContext)?.user}
+                  </div>
+                </>
+              )}
             </div>
-          ))}
+          )}
         </div>
 
         {/* Pods Section */}
