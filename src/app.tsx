@@ -20,6 +20,35 @@ const App = () => {
   const [pods, setPods] = useState<Pod[]>([]);
   const [podsLoading, setPodsLoading] = useState(false);
   const [podsError, setPodsError] = useState<string>("");
+  const [selectedNamespace, setSelectedNamespace] = useState<string>("default");
+
+  // Helper function to get unique namespaces from pods
+  const getUniqueNamespaces = (pods: Pod[]): string[] => {
+    const namespaces = Array.from(new Set(pods.map((pod) => pod.namespace)));
+    return namespaces.sort();
+  };
+
+  // Helper function to filter pods by namespace
+  const getFilteredPods = (pods: Pod[], selectedNamespace: string): Pod[] => {
+    if (selectedNamespace === "all") {
+      return pods;
+    }
+    return pods.filter((pod) => pod.namespace === selectedNamespace);
+  };
+
+  // Helper function to get the effective selected namespace
+  const getEffectiveNamespace = (
+    pods: Pod[],
+    selectedNamespace: string
+  ): string => {
+    const availableNamespaces = getUniqueNamespaces(pods);
+    // If selected namespace exists in available namespaces, use it
+    if (availableNamespaces.includes(selectedNamespace)) {
+      return selectedNamespace;
+    }
+    // If "default" exists, use it, otherwise fall back to "all"
+    return availableNamespaces.includes("default") ? "default" : "all";
+  };
 
   // Fetch contexts on mount
   useEffect(() => {
@@ -35,10 +64,21 @@ const App = () => {
     });
   }, []);
 
+  // Auto-adjust selected namespace when pods change
+  useEffect(() => {
+    if (pods.length > 0) {
+      const effectiveNamespace = getEffectiveNamespace(pods, selectedNamespace);
+      if (effectiveNamespace !== selectedNamespace) {
+        setSelectedNamespace(effectiveNamespace);
+      }
+    }
+  }, [pods, selectedNamespace]);
+
   // Handle context switch
   const handleSwitchContext = (contextName: string) => {
     window.electronAPI.switchContext(contextName).then(({ currentContext }) => {
       setCurrentContext(currentContext);
+      setSelectedNamespace("default"); // Reset namespace filter when switching contexts
       loadPods(contextName);
     });
   };
@@ -116,6 +156,34 @@ const App = () => {
               </button>
             </div>
 
+            {/* Namespace Filter */}
+            {pods.length > 0 && (
+              <div className="mb-4 flex items-center gap-3">
+                <label
+                  htmlFor="namespace-filter"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Filter by Namespace:
+                </label>
+                <select
+                  id="namespace-filter"
+                  value={selectedNamespace}
+                  onChange={(e) => setSelectedNamespace(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white min-w-[200px]"
+                >
+                  <option value="all">All Namespaces</option>
+                  {getUniqueNamespaces(pods).map((namespace) => (
+                    <option key={namespace} value={namespace}>
+                      {namespace}
+                    </option>
+                  ))}
+                </select>
+                <span className="text-sm text-gray-500">
+                  ({getFilteredPods(pods, selectedNamespace).length} pods)
+                </span>
+              </div>
+            )}
+
             {podsError && (
               <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-red-600">{podsError}</p>
@@ -156,59 +224,66 @@ const App = () => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {pods.map((pod, index) => (
-                        <tr
-                          key={`${pod.namespace}-${pod.name}`}
-                          className={
-                            index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                          }
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {pod.name}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {pod.namespace}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                pod.status === "Running"
-                                  ? "bg-green-100 text-green-800"
-                                  : pod.status === "Pending"
-                                    ? "bg-yellow-100 text-yellow-800"
-                                    : pod.status === "Failed"
-                                      ? "bg-red-100 text-red-800"
-                                      : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {pod.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                pod.ready
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-800"
-                              }`}
-                            >
-                              {pod.ready ? "Ready" : "Not Ready"}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {pod.restarts}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {pod.age}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {pod.node}
-                          </td>
-                        </tr>
-                      ))}
+                      {getFilteredPods(pods, selectedNamespace).map(
+                        (pod, index) => (
+                          <tr
+                            key={`${pod.namespace}-${pod.name}`}
+                            className={
+                              index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                            }
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                              {pod.name}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {pod.namespace}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  pod.status === "Running"
+                                    ? "bg-green-100 text-green-800"
+                                    : pod.status === "Pending"
+                                      ? "bg-yellow-100 text-yellow-800"
+                                      : pod.status === "Failed"
+                                        ? "bg-red-100 text-red-800"
+                                        : "bg-gray-100 text-gray-800"
+                                }`}
+                              >
+                                {pod.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span
+                                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  pod.ready
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {pod.ready ? "Ready" : "Not Ready"}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {pod.restarts}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {pod.age}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              {pod.node}
+                            </td>
+                          </tr>
+                        )
+                      )}
                     </tbody>
                   </table>
                 </div>
+              </div>
+            ) : getFilteredPods(pods, selectedNamespace).length === 0 &&
+              pods.length > 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No pods found in namespace "{selectedNamespace}"
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
