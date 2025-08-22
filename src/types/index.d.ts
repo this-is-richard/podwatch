@@ -1,6 +1,6 @@
 import type { Context, V1Pod } from "@kubernetes/client-node";
 
-interface Pod {
+export interface Pod {
   name: string;
   namespace: string;
   status: string;
