@@ -79,7 +79,9 @@ const setupAWSPath = (): void => {
       console.log("AWS CLI paths already in PATH");
     }
   } else {
-    console.warn("AWS CLI not found in common installation paths. This may cause authentication issues with EKS clusters.");
+    console.warn(
+      "AWS CLI not found in common installation paths. This may cause authentication issues with EKS clusters."
+    );
     console.log("Searched paths:", commonPaths);
   }
 };
@@ -121,7 +123,7 @@ ipcMain.handle("get-contexts", async () => {
 ipcMain.handle("switch-context", async (event, contextName) => {
   // Ensure AWS CLI is in PATH before loading kubeconfig
   setupAWSPath();
-  
+
   const kc = new k8s.KubeConfig();
   kc.loadFromDefault();
   kc.setCurrentContext(contextName);
@@ -133,7 +135,7 @@ ipcMain.handle("get-pods", async (event, contextName) => {
   try {
     // Ensure AWS CLI is in PATH before loading kubeconfig
     setupAWSPath();
-    
+
     const kc = new k8s.KubeConfig();
     kc.loadFromDefault();
 
@@ -168,16 +170,17 @@ ipcMain.handle("get-pods", async (event, contextName) => {
     return { success: true, pods };
   } catch (error) {
     console.error("Error getting pods:", error);
-    
+
     // Check if it's an AWS CLI related error
-    if (error.message && error.message.includes('spawn aws ENOENT')) {
-      return { 
-        success: false, 
-        error: "AWS CLI not found. Please ensure AWS CLI is installed and available in PATH. This is required for EKS cluster authentication.", 
-        pods: [] 
+    if (error.message && error.message.includes("spawn aws ENOENT")) {
+      return {
+        success: false,
+        error:
+          "AWS CLI not found. Please ensure AWS CLI is installed and available in PATH. This is required for EKS cluster authentication.",
+        pods: [],
       };
     }
-    
+
     return { success: false, error: error.message, pods: [] };
   }
 });
@@ -221,7 +224,7 @@ ipcMain.handle(
 
       // Ensure AWS CLI is in PATH before loading kubeconfig
       setupAWSPath();
-      
+
       // Get the current context and kubeconfig
       const kc = new k8s.KubeConfig();
       kc.loadFromDefault();
