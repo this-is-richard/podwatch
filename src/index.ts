@@ -42,6 +42,7 @@ ipcMain.handle("get-contexts", async () => {
     name: ctx.name,
     cluster: ctx.cluster,
     user: ctx.user,
+    context: ctx,
   }));
   return { contexts, currentContext: kc.currentContext };
 });
@@ -91,6 +92,7 @@ ipcMain.handle("get-pods", async (event, contextName) => {
             )
           : 0,
         node: pod.spec?.nodeName || "Unknown",
+        pod,
       })) || [];
 
     return { success: true, pods };

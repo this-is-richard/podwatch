@@ -1,3 +1,5 @@
+import type { Context, V1Pod } from "@kubernetes/client-node";
+
 interface Pod {
   name: string;
   namespace: string;
@@ -6,11 +8,17 @@ interface Pod {
   restarts: number;
   age: number;
   node: string;
+  pod: V1Pod;
 }
 
 interface ElectronAPI {
   getContexts: () => Promise<{
-    contexts: { name: string; cluster: string; user: string }[];
+    contexts: {
+      name: string;
+      cluster: string;
+      user: string;
+      context: Context;
+    }[];
     currentContext: string;
   }>;
   switchContext: (
