@@ -1,0 +1,36 @@
+<svg class="app-icon primary-icon" id="primary-icon" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#667eea;stop-opacity:1"/>
+                        <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1"/>
+                    </linearGradient>
+                </defs>
+                <rect width="128" height="128" rx="24" fill="url(#primaryGrad)"/>
+                
+                <!-- Pod/Container symbol (hexagon) -->
+                <g transform="translate(64, 45)">
+                    <polygon points="-15,-8.5 -7.5,-13 7.5,-13 15,-8.5 15,8.5 7.5,13 -7.5,13 -15,8.5" fill="rgba(255,255,255,0.9)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+                    <circle cx="0" cy="0" r="4" fill="rgba(102,126,234,0.8)"/>
+                </g>
+                
+                <!-- Watch/Monitor symbol -->
+                <g transform="translate(64, 85)">
+                    <circle cx="0" cy="0" r="18" fill="rgba(255,255,255,0.95)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+                    <line x1="0" y1="0" x2="0" y2="-10" stroke="rgba(102,126,234,0.9)" stroke-width="2.5" stroke-linecap="round"/>
+                    <line x1="0" y1="0" x2="8" y2="0" stroke="rgba(102,126,234,0.7)" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="0" cy="0" r="2" fill="rgba(118,75,162,0.9)"/>
+                    <circle cx="0" cy="-14" r="1.5" fill="rgba(102,126,234,0.6)"/>
+                    <circle cx="14" cy="0" r="1.5" fill="rgba(102,126,234,0.6)"/>
+                    <circle cx="0" cy="14" r="1.5" fill="rgba(102,126,234,0.6)"/>
+                    <circle cx="-14" cy="0" r="1.5" fill="rgba(102,126,234,0.6)"/>
+                </g>
+                
+                <line x1="64" y1="58" x2="64" y2="67" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-dasharray="3,2"/>
+                
+                <circle cx="25" cy="30" r="3" fill="rgba(255,255,255,0.7)">
+                    <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="103" cy="35" r="2.5" fill="rgba(255,255,255,0.6)">
+                    <animate attributeName="opacity" values="1;0.3;1" dur="2.5s" repeatCount="indefinite"/>
+                </circle>
+            </svg>

@@ -11,7 +11,8 @@
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx .",
     "build-css": "tailwindcss -i ./src/index.css -o ./src/output.css",
-    "watch-css": "tailwindcss -i ./src/index.css -o ./src/output.css --watch"
+    "watch-css": "tailwindcss -i ./src/index.css -o ./src/output.css --watch",
+    "make-mac-icons": "cd src/icons && iconutil -c icns podwatch-primary.iconset -o podwatch-primary.icns"
   },
   "keywords": [],
   "author": {
