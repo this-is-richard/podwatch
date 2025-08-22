@@ -1,6 +1,7 @@
 // Import the Pod type from types
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { useState } from "react";
 import type { Pod } from "../types";
 dayjs.extend(relativeTime);
 // Pod Detail Dialog Component
@@ -13,7 +14,29 @@ const PodDetailDialog = ({
   isOpen: boolean;
   onClose: () => void;
 }) => {
+  const [isCopied, setIsCopied] = useState(false);
+
   if (!isOpen || !pod) return null;
+
+  const copyJsonToClipboard = async () => {
+    try {
+      const jsonString = JSON.stringify(pod.pod, null, 2);
+      await navigator.clipboard.writeText(jsonString);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000); // Reset after 2 seconds
+    } catch (error) {
+      console.error("Failed to copy JSON:", error);
+      // Fallback for older browsers
+      const textArea = document.createElement("textarea");
+      textArea.value = JSON.stringify(pod.pod, null, 2);
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textArea);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000); // Reset after 2 seconds
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
@@ -75,7 +98,17 @@ const PodDetailDialog = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 flex justify-end">
+        <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+          <button
+            onClick={copyJsonToClipboard}
+            className={`px-4 py-2 text-white rounded transition-colors ${
+              isCopied
+                ? "bg-green-600 hover:bg-green-700"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
+          >
+            {isCopied ? "Copied!" : "Copy Json"}
+          </button>
           <button
             onClick={onClose}
             className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
