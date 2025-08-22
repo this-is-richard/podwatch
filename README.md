@@ -7,6 +7,8 @@
 
 A lightweight, user-friendly Kubernetes cluster management GUI built with Electron and React. Designed for developers who need quick access to cluster information and pod logs without the complexity of command-line tools.
 
+👷 **Note**: This tool complements your existing Kubernetes workflow and is not intended to replace kubectl for advanced operations.
+
 ## ✨ Features
 
 ### Core Functionality
@@ -223,7 +225,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Built with ❤️ using Electron and React
 - Icons provided by [Lucide](https://lucide.dev/)
 - Kubernetes client integration via [@kubernetes/client-node](https://github.com/kubernetes-client/javascript)
-
----
-
-**Note**: This tool complements your existing Kubernetes workflow and is not intended to replace kubectl for advanced operations.
