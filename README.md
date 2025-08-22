@@ -1,11 +1,11 @@
-# K8s Manager
+# PodWatch
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Electron](https://img.shields.io/badge/Electron-37.3.1-blue.svg)](https://electronjs.org/)
 [![React](https://img.shields.io/badge/React-19.1.1-61DAFB.svg)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.5.4-blue.svg)](https://www.typescriptlang.org/)
 
-A lightweight, user-friendly Kubernetes cluster management GUI built with Electron and React. Designed for developers who need quick access to cluster information and pod logs without the complexity of command-line tools.
+A lightweight, user-friendly Kubernetes pod log streaming GUI built with Electron and React. Designed for developers who need quick access to cluster information and pod logs without the complexity of command-line tools.
 
 👷 **Note**: This tool complements your existing Kubernetes workflow and is not intended to replace kubectl for advanced operations.
 
@@ -14,7 +14,7 @@ A lightweight, user-friendly Kubernetes cluster management GUI built with Electr
 ### Core Functionality
 
 - 🔄 **Context Management**: View and switch between Kubernetes contexts seamlessly
-- 📦 **Pod Monitoring**: Browse pods across namespaces with real-time status updates
+- 📦 **Pod Searching**: Browse pods across namespaces with real-time status updates
 - 📋 **Log Streaming**: Stream and search pod logs with one-click copy functionality
 - 🔍 **Namespace Filtering**: Filter pods by namespace for better organization
 - ⏰ **Real-time Updates**: Live pod status and log streaming
@@ -31,7 +31,7 @@ A lightweight, user-friendly Kubernetes cluster management GUI built with Electr
 ### Download & Install
 
 <div align="center">
-  <a href="https://github.com/your-username/k8s-manager/releases/latest" style="text-decoration: none;">
+  <a href="https://github.com/your-username/podwatch/releases/latest" style="text-decoration: none;">
     <div style="
       display: inline-flex;
       align-items: center;
@@ -66,8 +66,8 @@ A lightweight, user-friendly Kubernetes cluster management GUI built with Electr
 
 1. Click the download button above to get the latest DMG file
 2. Open the downloaded DMG file
-3. Drag K8s Manager to your Applications folder
-4. Launch K8s Manager from Applications or Spotlight
+3. Drag PodWatch to your Applications folder
+4. Launch PodWatch from Applications or Spotlight
 
 ### Prerequisites
 
@@ -77,13 +77,13 @@ A lightweight, user-friendly Kubernetes cluster management GUI built with Electr
 
 ### First Launch
 
-1. Open K8s Manager
+1. Open PodWatch
 2. The app will automatically detect your kubeconfig contexts
 3. Select a context from the dropdown to start exploring your cluster
 4. Choose a namespace and browse your pods
 5. Click on any pod to view its logs
 
-> **Note**: K8s Manager reads your existing kubectl configuration. No additional setup required!
+> **Note**: PodWatch reads your existing kubectl configuration. No additional setup required!
 
 ## 🎯 Use Cases
 
@@ -151,7 +151,7 @@ graph TD
 
 ## 📋 Current Limitations
 
-K8s Manager is designed as a **read-only cluster viewer** and **log monitoring tool**. It currently does not support:
+PodWatch is designed as a **read-only cluster viewer** and **log streaming tool**. It currently does not support:
 
 - Creating or modifying Kubernetes resources
 - Cluster provisioning or management
@@ -170,8 +170,8 @@ We welcome contributions! Whether it's bug fixes, new features, or documentation
 2. Clone your fork:
 
 ```bash
-git clone https://github.com/your-username/k8s-manager.git
-cd k8s-manager
+git clone https://github.com/your-username/podwatch.git
+cd podwatch
 ```
 
 3. Install dependencies:

@@ -1,8 +1,8 @@
 {
-  "name": "k8s-manaager",
-  "productName": "k8s-manaager",
+  "name": "podwatch",
+  "productName": "PodWatch",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "A lightweight Kubernetes pod log streaming application",
   "main": ".webpack/main",
   "scripts": {
     "start": "concurrently \"npm run watch-css\" \"electron-forge start\"",
