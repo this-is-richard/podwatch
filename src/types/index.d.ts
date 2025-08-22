@@ -6,7 +6,7 @@ export interface Pod {
   status: string;
   ready: boolean;
   restarts: number;
-  age: number;
+  creationTimestamp?: Date;
   node: string;
   pod: V1Pod;
 }

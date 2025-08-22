@@ -17,7 +17,7 @@ const PodDetailDialog = ({
   if (!isOpen || !pod) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
       <div className="bg-white rounded-lg max-w-4xl max-h-[80vh] w-full mx-4 flex flex-col">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
@@ -56,7 +56,7 @@ const PodDetailDialog = ({
                 <strong>Restarts:</strong> {pod.restarts}
               </div>
               <div>
-                <strong>Age:</strong> {pod.age} days
+                <strong>Age:</strong> {pod.creationTimestamp?.toLocaleString()}
               </div>
               <div>
                 <strong>Node:</strong> {pod.node}
@@ -460,7 +460,8 @@ const App = () => {
                             </span>
                           </div>
                           <div className="text-xs text-gray-500 mt-1">
-                            Restarts: {pod.restarts} • Age: {pod.age}d
+                            Restarts: {pod.restarts} • Created:{" "}
+                            {pod.creationTimestamp?.toLocaleString()}
                           </div>
                         </div>
                         <div className="ml-2 flex flex-col gap-1">

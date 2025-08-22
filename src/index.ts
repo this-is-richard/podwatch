@@ -84,13 +84,7 @@ ipcMain.handle("get-pods", async (event, contextName) => {
               sum + (cs.restartCount || 0),
             0
           ) || 0,
-        age: pod.metadata?.creationTimestamp
-          ? Math.floor(
-              (Date.now() -
-                new Date(pod.metadata.creationTimestamp).getTime()) /
-                (1000 * 60 * 60 * 24)
-            )
-          : 0,
+        creationTimestamp: pod.metadata?.creationTimestamp,
         node: pod.spec?.nodeName || "Unknown",
         pod,
       })) || [];
