@@ -1,5 +1,9 @@
 # PodWatch
 
+<div align="center">
+  <img src="src/icons/podwatch-primary.svg" alt="PodWatch Logo" width="128" height="128">
+</div>
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Electron](https://img.shields.io/badge/Electron-37.3.1-blue.svg)](https://electronjs.org/)
 [![React](https://img.shields.io/badge/React-19.1.1-61DAFB.svg)](https://reactjs.org/)
