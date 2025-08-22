@@ -2,7 +2,10 @@ import { Check, Copy } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 // Import the Pod type from types
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import type { Pod } from "./types";
+dayjs.extend(relativeTime);
 
 // Pod Detail Dialog Component
 const PodDetailDialog = ({
@@ -56,7 +59,8 @@ const PodDetailDialog = ({
                 <strong>Restarts:</strong> {pod.restarts}
               </div>
               <div>
-                <strong>Age:</strong> {pod.creationTimestamp?.toLocaleString()}
+                <strong>Age:</strong>{" "}
+                {pod.creationTimestamp?.toLocaleString() || "N/A"}
               </div>
               <div>
                 <strong>Node:</strong> {pod.node}
@@ -460,8 +464,10 @@ const App = () => {
                             </span>
                           </div>
                           <div className="text-xs text-gray-500 mt-1">
-                            Restarts: {pod.restarts} • Created:{" "}
-                            {pod.creationTimestamp?.toLocaleString()}
+                            Restarts: {pod.restarts} • Age:{" "}
+                            {pod.creationTimestamp
+                              ? dayjs(pod.creationTimestamp).fromNow()
+                              : "N/A"}
                           </div>
                         </div>
                         <div className="ml-2 flex flex-col gap-1">
