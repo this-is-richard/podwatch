@@ -28,6 +28,10 @@ const App = () => {
   const logContainerRef = useRef<HTMLDivElement>(null);
   const [copySuccess, setCopySuccess] = useState(false);
 
+  // Log search state
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [filteredLogs, setFilteredLogs] = useState<string[]>([]);
+
   // Pod detail dialog state
   const [showPodDetail, setShowPodDetail] = useState(false);
   const [podDetailData, setPodDetailData] = useState<Pod | null>(null);
@@ -60,6 +64,58 @@ const App = () => {
     return availableNamespaces.includes("default") ? "default" : "all";
   };
 
+  // Helper function to filter logs based on search term
+  const filterLogs = (logs: string[], searchTerm: string): string[] => {
+    if (!searchTerm.trim()) {
+      return logs;
+    }
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return logs.filter((log) => log.toLowerCase().includes(lowerSearchTerm));
+  };
+
+  // Helper function to highlight search matches in log text
+  const highlightSearchMatches = (
+    text: string,
+    searchTerm: string
+  ): React.ReactNode => {
+    if (!searchTerm.trim()) {
+      return text;
+    }
+
+    const lowerText = text.toLowerCase();
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    const parts = [];
+    let lastIndex = 0;
+    let matchIndex = lowerText.indexOf(lowerSearchTerm);
+
+    while (matchIndex !== -1) {
+      // Add text before the match
+      if (matchIndex > lastIndex) {
+        parts.push(text.substring(lastIndex, matchIndex));
+      }
+
+      // Add the highlighted match
+      parts.push(
+        <span
+          key={`${matchIndex}-${searchTerm}`}
+          className="bg-yellow-300 text-black font-bold"
+        >
+          {text.substring(matchIndex, matchIndex + searchTerm.length)}
+        </span>
+      );
+
+      lastIndex = matchIndex + searchTerm.length;
+      matchIndex = lowerText.indexOf(lowerSearchTerm, lastIndex);
+    }
+
+    // Add remaining text
+    if (lastIndex < text.length) {
+      parts.push(text.substring(lastIndex));
+    }
+
+    return parts;
+  };
+
   // Fetch contexts on mount
   useEffect(() => {
     window.electronAPI.getContexts().then(({ contexts, currentContext }) => {
@@ -84,12 +140,18 @@ const App = () => {
     }
   }, [pods, selectedNamespace]);
 
+  // Filter logs when search term or logs change
+  useEffect(() => {
+    const filtered = filterLogs(logs, searchTerm);
+    setFilteredLogs(filtered);
+  }, [logs, searchTerm]);
+
   // Auto-scroll logs when new logs arrive
   useEffect(() => {
     if (followLogs && logContainerRef.current) {
       logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
     }
-  }, [logs, followLogs]);
+  }, [filteredLogs, followLogs]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -109,7 +171,9 @@ const App = () => {
     // Reset pod selection
     setSelectedPod(null);
     setLogs([]);
+    setFilteredLogs([]);
     setLogError("");
+    setSearchTerm("");
 
     window.electronAPI.switchContext(contextName).then(({ currentContext }) => {
       setCurrentContext(currentContext);
@@ -142,7 +206,9 @@ const App = () => {
   const handlePodSelect = (pod: Pod) => {
     setSelectedPod(pod);
     setLogs([]);
+    setFilteredLogs([]);
     setLogError("");
+    setSearchTerm("");
     startLogStreaming(pod);
   };
 
@@ -193,6 +259,8 @@ const App = () => {
   // Clear logs
   const clearLogs = () => {
     setLogs([]);
+    setFilteredLogs([]);
+    setSearchTerm("");
   };
 
   // Copy all logs to clipboard
@@ -423,7 +491,7 @@ const App = () => {
           <div className="flex flex-col h-full">
             {/* Log Header */}
             <div className="px-6 py-4 bg-white border-b border-gray-200">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">
                     Logs for {selectedPod.name}
@@ -489,6 +557,33 @@ const App = () => {
                   </button>
                 </div>
               </div>
+
+              {/* Search Section */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    placeholder="Search logs..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm("")}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      title="Clear search"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                {searchTerm && (
+                  <div className="text-sm text-gray-600 whitespace-nowrap">
+                    {filteredLogs.length} of {logs.length} lines
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Log Error */}
@@ -513,13 +608,19 @@ const App = () => {
                       ? "Waiting for logs..."
                       : "No logs available. Click Start to begin streaming."}
                   </div>
+                ) : searchTerm && filteredLogs.length === 0 ? (
+                  <div className="text-gray-500 text-center py-8">
+                    No logs match your search "{searchTerm}"
+                  </div>
                 ) : (
-                  logs.map((log, index) => (
+                  (searchTerm ? filteredLogs : logs).map((log, index) => (
                     <div
                       key={index}
                       className="whitespace-pre-wrap break-words"
                     >
-                      {log}
+                      {searchTerm
+                        ? highlightSearchMatches(log, searchTerm)
+                        : log}
                     </div>
                   ))
                 )}
@@ -530,7 +631,10 @@ const App = () => {
             <div className="px-6 py-2 bg-gray-50 border-t border-gray-200 text-sm text-gray-600">
               <div className="flex items-center justify-between">
                 <span>
-                  {logs.length} lines • {isStreaming ? "Streaming" : "Stopped"}
+                  {searchTerm
+                    ? `${filteredLogs.length} of ${logs.length} lines (filtered)`
+                    : `${logs.length} lines`}{" "}
+                  • {isStreaming ? "Streaming" : "Stopped"}
                 </span>
                 <span>
                   {selectedPod.name} in {selectedPod.namespace}
