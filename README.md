@@ -98,6 +98,55 @@ A lightweight, user-friendly Kubernetes cluster management GUI built with Electr
 - **Build System**: Webpack, Electron Forge
 - **Icons**: Lucide React
 
+## ⚙️ How It Works Behind the Scenes
+
+### Architecture & Execution Flow
+
+```mermaid
+graph TD
+    A["User Interface<br/>(React App)"] --> B["IPC Communication"]
+    B --> C["Main Process<br/>(Node.js/Electron)"]
+
+    C --> D["Setup AWS CLI Path<br/>(/usr/local/bin, /opt/homebrew/bin)"]
+    D --> E["Load Kubeconfig<br/>(~/.kube/config)"]
+
+    E --> F{"Authentication Type"}
+    F -->|EKS Clusters| G["Spawn AWS CLI<br/>(aws eks get-token)"]
+    F -->|Other Clusters| H["Certificate/Token Auth"]
+
+    G --> I["Kubernetes API Client<br/>(@kubernetes/client-node)"]
+    H --> I
+
+    I --> J{"Operation Type"}
+    J -->|List Pods| K["k8s.CoreV1Api<br/>listPodForAllNamespaces()"]
+    J -->|Stream Logs| L["Spawn Process<br/>(kubectl logs -f)"]
+    J -->|Switch Context| M["Update Context<br/>(in-memory only)"]
+
+    K --> N["Return Pod Data"]
+    L --> O["Stream Log Data"]
+    M --> P["Return Success"]
+
+    N --> B
+    O --> B
+    P --> B
+```
+
+### Key Points
+
+- **Electron Architecture**: Main process handles Kubernetes operations, renderer process manages UI
+- **Authentication**: Automatically detects and uses AWS CLI for EKS clusters, supports all kubectl auth methods
+- **Path Resolution**: Searches common installation paths for required binaries (aws, kubectl)
+- **Read-Only**: Only retrieves cluster information, never modifies resources
+- **Local Operations**: Uses your existing kubeconfig and credentials, no external data transmission
+
+### Common Troubleshooting
+
+| Issue              | Cause                      | Solution                                                               |
+| ------------------ | -------------------------- | ---------------------------------------------------------------------- |
+| "spawn aws ENOENT" | AWS CLI not in PATH        | App auto-detects AWS CLI paths. Ensure `aws --version` works           |
+| No contexts found  | Missing/invalid kubeconfig | Verify `~/.kube/config` exists and `kubectl config get-contexts` works |
+| Connection errors  | Network/firewall issues    | Same requirements as kubectl - ensure cluster endpoints are accessible |
+
 ## 📋 Current Limitations
 
 K8s Manager is designed as a **read-only cluster viewer** and **log monitoring tool**. It currently does not support:
