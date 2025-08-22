@@ -5,6 +5,7 @@
 </div>
 <br/>
 
+[![Release](https://img.shields.io/badge/Release-v1.0.0--beta.1-green.svg)](https://github.com/richardng/podwatch/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Electron](https://img.shields.io/badge/Electron-37.3.1-blue.svg)](https://electronjs.org/)
 [![React](https://img.shields.io/badge/React-19.1.1-61DAFB.svg)](https://reactjs.org/)
