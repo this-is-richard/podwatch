@@ -17,8 +17,7 @@ A lightweight, user-friendly Kubernetes pod log streaming GUI built with Electro
 
 <div align="center">
   <a href="https://github.com/richardng/podwatch/releases/latest">
-    <img src="apple-brands-solid-full.svg" alt="Apple" width="24" height="24" style="vertical-align: middle; margin-right: 8px;">
-    <strong>Download for Mac - Apple Silicon</strong>
+    <img src="download-for-mac-apple-silicon-button.svg" alt="Download for Mac - Apple Silicon" width="210" height="56">
   </a>
 </div>
 
