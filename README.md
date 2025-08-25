@@ -15,6 +15,13 @@ A lightweight, user-friendly Kubernetes pod log streaming GUI built with Electro
 
 👷 **Note**: This tool complements your existing Kubernetes workflow and is not intended to replace kubectl for advanced operations.
 
+<div align="center">
+  <a href="https://github.com/richardng/podwatch/releases/latest">
+    <img src="apple-brands-solid-full.svg" alt="Apple" width="24" height="24" style="vertical-align: middle; margin-right: 8px;">
+    <strong>Download for Mac - Apple Silicon</strong>
+  </a>
+</div>
+
 ## ✨ Features
 
 ### Core Functionality
@@ -33,10 +40,6 @@ A lightweight, user-friendly Kubernetes pod log streaming GUI built with Electro
 - 📱 **Intuitive Design**: Point-and-click interface for common Kubernetes tasks
 
 ## 🚀 Getting Started
-
-### Download & Install
-
-[📥 Download the latest release](https://github.com/your-username/podwatch/releases/latest)
 
 **Installation Steps:**
 
