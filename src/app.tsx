@@ -6,6 +6,8 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import PodDetailDialog from "./components/PodDetailDialog";
 import type { Pod } from "./types";
+//@ts-expect-error cannot declare type for asset/resource from webpack
+import podwatchLogo from "./icons/podwatch-primary-1024px.png";
 dayjs.extend(relativeTime);
 
 const App = () => {
@@ -304,6 +306,17 @@ const App = () => {
     <div className="flex h-screen bg-gray-50 font-sans">
       {/* Left Sidebar - Pod Navigation */}
       <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+        {/* App Header */}
+        <div className="p-4 border-b border-gray-200 bg-blue-50">
+          <div className="flex items-center gap-3">
+            <img src={podwatchLogo} alt="PodWatch Logo" className="w-8 h-8" />
+            <div>
+              <h1 className="text-xl font-bold text-blue-800">PodWatch</h1>
+              <p className="text-xs text-blue-600">Kubernetes Pod Monitor</p>
+            </div>
+          </div>
+        </div>
+
         {/* Context Section */}
         <div className="p-4 border-b border-gray-200 bg-gray-50">
           <h2 className="text-lg font-bold text-gray-800 mb-3">
