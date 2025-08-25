@@ -61,6 +61,7 @@ const config: ForgeConfig = {
           owner: "this-is-richard",
           name: "podwatch",
         },
+        authToken: process.env.GITHUB_TOKEN,
         draft: false,
         prerelease: true,
       },
