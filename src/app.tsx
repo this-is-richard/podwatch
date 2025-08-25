@@ -311,8 +311,10 @@ const App = () => {
           <div className="flex items-center gap-3">
             <img src={podwatchLogo} alt="PodWatch Logo" className="w-8 h-8" />
             <div>
-              <h1 className="text-xl font-bold text-blue-800">PodWatch</h1>
-              <p className="text-xs text-blue-600">Kubernetes Pod Monitor</p>
+              <h1 className="text-xl font-bold bg-gradient-to-br from-[#667eea] to-[#764ba2] bg-clip-text text-transparent">
+                PodWatch
+              </h1>
+              <p className="text-xs text-gray-500">Kubernetes Pod Monitor</p>
             </div>
           </div>
         </div>
