@@ -30,6 +30,9 @@ const App = () => {
   const logContainerRef = useRef<HTMLDivElement>(null);
   const [copySuccess, setCopySuccess] = useState(false);
 
+  // Pod name copy state
+  const [copiedPodName, setCopiedPodName] = useState<string>("");
+
   // Log search state
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [filteredLogs, setFilteredLogs] = useState<string[]>([]);
@@ -283,6 +286,21 @@ const App = () => {
     }
   };
 
+  // Copy pod name to clipboard
+  const copyPodName = async (podName: string) => {
+    try {
+      await navigator.clipboard.writeText(podName);
+      setCopiedPodName(podName);
+
+      // Reset copied state after 2 seconds
+      setTimeout(() => {
+        setCopiedPodName("");
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to copy pod name:", error);
+    }
+  };
+
   // Handle opening pod detail dialog
   const handleViewPodDetail = (pod: Pod) => {
     setPodDetailData(pod);
@@ -421,7 +439,7 @@ const App = () => {
                   {getFilteredPods(pods, selectedNamespace).map((pod) => (
                     <div
                       key={`${pod.namespace}-${pod.name}`}
-                      className={`p-3 cursor-pointer transition-colors hover:bg-blue-50 ${
+                      className={`group p-3 cursor-pointer transition-colors hover:bg-blue-50 ${
                         selectedPod &&
                         selectedPod.name === pod.name &&
                         selectedPod.namespace === pod.namespace
@@ -432,8 +450,24 @@ const App = () => {
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-gray-900 truncate">
-                            {pod.name}
+                          <div className="flex items-center gap-2">
+                            <div className="font-medium text-sm text-gray-900 truncate">
+                              {pod.name}
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                copyPodName(pod.name);
+                              }}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-200 rounded"
+                              title="Copy pod name"
+                            >
+                              {copiedPodName === pod.name ? (
+                                <Check size={12} className="text-green-600" />
+                              ) : (
+                                <Copy size={12} className="text-gray-500" />
+                              )}
+                            </button>
                           </div>
                           <div className="text-xs text-gray-500 truncate">
                             {pod.namespace}
@@ -508,9 +542,27 @@ const App = () => {
             <div className="px-6 py-4 bg-white border-b border-gray-200">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Logs for {selectedPod.name}
-                  </h3>
+                  <div className="mb-2">
+                    <span className="text-lg font-semibold text-gray-900">
+                      Logs for{" "}
+                    </span>
+                    <div className="inline-flex items-center gap-2 bg-gray-100 border border-gray-200 rounded-md px-3 py-1">
+                      <span className="text-lg font-semibold text-gray-900">
+                        {selectedPod.name}
+                      </span>
+                      <button
+                        onClick={() => copyPodName(selectedPod.name)}
+                        className="p-1 hover:bg-gray-200 rounded transition-colors"
+                        title="Copy pod name"
+                      >
+                        {copiedPodName === selectedPod.name ? (
+                          <Check size={14} className="text-green-600" />
+                        ) : (
+                          <Copy size={14} className="text-gray-500" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
                   <p className="text-sm text-gray-600">
                     Namespace: {selectedPod.namespace} • Status:{" "}
                     {selectedPod.status}
